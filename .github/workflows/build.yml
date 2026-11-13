@@ -1,0 +1,62 @@
+name: build
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write   # necesario solo para publicar el release al crear un tag
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 25
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: current
+
+      - name: Build
+        run: gradle build --no-daemon
+
+      # solo el jar del mod (sin el -sources)
+      # si el build falla, imprime los nombres reales de Minecraft para corregir el codigo
+      - name: Diagnostico (solo si falla)
+        if: failure()
+        run: |
+          J=$(find ~/.gradle -name "*.jar" -path "*minecraft*" ! -name "*sources*" 2>/dev/null | head -20)
+          echo "$J"
+          for f in $J; do
+            echo "=== $f"
+            unzip -l "$f" 2>/dev/null | grep -i -E "inventory/(ClickType|ContainerInput)|client/gui/Gui\.class|MultiPlayerGameMode\.class" || true
+          done
+          for f in $J; do
+            if unzip -l "$f" 2>/dev/null | grep -q "client/gui/Gui.class"; then
+              javap -cp "$f" net.minecraft.client.gui.Gui | grep -i screen
+              javap -cp "$f" net.minecraft.client.multiplayer.MultiPlayerGameMode | grep -i -E "click|container|attack"
+              unzip -l "$f" | grep -i "world/inventory/" | grep -i -E "click|input"
+            fi
+          done
+
+      - name: Subir jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: mercury-client
+          path: |
+            build/libs/*.jar
+            !build/libs/*-sources.jar
+
+      # al hacer: git tag v1.0.0 && git push --tags  -> crea el release con el jar
+      - name: Publicar release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            build/libs/*.jar
+            !build/libs/*-sources.jar
