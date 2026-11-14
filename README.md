@@ -35,3 +35,7 @@ Todos los efectos se dibujan en el HUD proyectando el mundo a pantalla (como el 
 - **Xray**: minerales (diamante, esmeralda, oro, hierro, cobre, redstone, lapis, carbon, cuarzo) a traves de bloques, cada uno activable; tracer on/off, relleno, color natural o el que elijas.
 - **Ancient Debris**: buscador tipo xray con tracer on/off, color configurable, distancia y coordenadas.
 - **Skybox "Video (nebulosa)"**: cielo degradado con nubes oscuras suaves, estrellas y franjas de aurora diagonales; color del cielo (paleta o RGB) y de la aurora configurables.
+- **Render suave (v25)**: brillos, lineas y destellos ahora son sprites difuminados (assets/mercuryclient/textures/fx), rotados y escalados con la pose del GUI: sin cuadritos. Skybox en columnas con degradado vertical, nubes de nebulosa con ruido horneado, borde del terreno recortado y difuminado.
+- **Safe Anchor** (Cliente): al poner un respawn anchor cerca de un enemigo -> carga con glowstone, coloca bloque de escudo, cambia a totem y detona. No actua en el Nether.
+- **Pestana PvP**: Aim Assist, Auto Totem, Auto Armor, Auto Gapple, Lanzar perla (asignale tecla), Sprint, Fast Place, Mace Combo, Safe Anchor.
+- **Visuals**: Fullbright, Target HUD; Crystal Hitbox y ESP de jugadores ahora usan el mismo render suave (con brillo) que el resto.
