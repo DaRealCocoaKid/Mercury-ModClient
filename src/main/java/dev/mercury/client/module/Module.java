@@ -11,7 +11,7 @@ import java.util.function.Consumer;
 
 public final class Module {
     public enum Cat {
-        CLIENTE("Cliente"), VISUALS("Visuals");
+        CLIENTE("Cliente"), PVP("PvP"), VISUALS("Visuals");
         public final String title;
         Cat(String t) { title = t; }
     }

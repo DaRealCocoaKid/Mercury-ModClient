@@ -19,9 +19,9 @@ import java.util.List;
 public class MercuryMenu extends Screen {
     private record Hit(int x1, int y1, int x2, int y2, Runnable left, Runnable right) {}
 
-    private static final String[] TABS = {"Cliente", "Visuals", "Configuracion"};
+    private static final String[] TABS = {"Cliente", "PvP", "Visuals", "Configuracion"};
     private static int tab = 0;
-    private static final Module[] selected = new Module[2];
+    private static final Module[] selected = new Module[Module.Cat.values().length];
 
     private final Screen parent;
     private final List<Hit> hits = new ArrayList<>();
@@ -107,8 +107,8 @@ public class MercuryMenu extends Screen {
                 Gfx.rrect(g, bx + ox + k * 8, by, bx + bw + ox + k * 8, by + bh, 6, Gfx.a(0xFFFFFFFF, 0.04f * (1f - tp)));
         }
 
-        if (tab == 2) drawConfig(g, mx, my, bx + ox, by, bw, bh, a);
-        else drawModules(g, mx, my, bx + ox, by, bw, bh, a, tab == 0 ? Module.Cat.CLIENTE : Module.Cat.VISUALS);
+        if (tab == 3) drawConfig(g, mx, my, bx + ox, by, bw, bh, a);
+        else drawModules(g, mx, my, bx + ox, by, bw, bh, a, tab == 0 ? Module.Cat.CLIENTE : tab == 1 ? Module.Cat.PVP : Module.Cat.VISUALS);
 
         String hint = "Click: activar / cambiar    Click derecho: -    Tecla del menu: " + Gfx.keyName(Config.menuKey);
         g.text(font, hint, (width - font.width(hint)) / 2, y0 + ph - 13, Gfx.a(0xFF6F7583, open), false);

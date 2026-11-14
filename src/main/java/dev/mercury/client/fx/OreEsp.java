@@ -105,13 +105,10 @@ public final class OreEsp {
             if (d2 > (range + 4) * (range + 4)) continue;
             if (++drawn > 500) break;
             int rgb = rgbOf(f, t);
-            boolean near = d2 < 24 * 24;
-            Cam.box(g, f.x, f.y, f.z, f.x + 1, f.y + 1, f.z + 1, rgb, 1f, width, near && drawn < 120);
-            if (fill && Cam.project(f.x + 0.5, f.y + 0.5, f.z + 0.5)) {
-                int h = (int) Math.max(1, Math.min(40, 0.42 * Cam.scale / Cam.sz));
-                int x = (int) Cam.sx, y = (int) Cam.sy;
-                g.fill(x - h, y - h, x + h, y + h, Col.argb(rgb, 0.22f));
-            }
+            boolean near = d2 < 18 * 18;
+            if (near) Cam.box(g, f.x, f.y, f.z, f.x + 1, f.y + 1, f.z + 1, rgb, 1f, width, drawn < 80);
+            if (fill) Cam.halo(g, f.x + 0.5, f.y + 0.5, f.z + 0.5, near ? 1.9 : 1.5, rgb, near ? 0.5f : 0.75f);
+            if (!near && Cam.project(f.x + 0.5, f.y + 0.5, f.z + 0.5)) Spr.flare(g, Cam.sx, Cam.sy, Math.max(10, 0.9 * Cam.scale / Cam.sz * 1.6), rgb, 0.7f);
             if (tracer) Cam.tracer(g, f.x + 0.5, f.y + 0.5, f.z + 0.5, rgb, 0.8f, Math.max(1, width));
             if (debris && label && Cam.project(f.x + 0.5, f.y + 1.2, f.z + 0.5)) {
                 String s = "Debris " + Math.round(Math.sqrt(d2)) + "m  (" + f.x + ", " + f.y + ", " + f.z + ")";

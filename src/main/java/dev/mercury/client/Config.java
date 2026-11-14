@@ -18,6 +18,8 @@ public final class Config {
     public static int menuKey = 344; // RIGHT SHIFT
     public static boolean openOnJoin = true, hud = true, anim = true;
     public static final Set<String> friends = new LinkedHashSet<>();
+    /** Nombres a vigilar con el Detector de cazadores (minusculas). Si esta vacia vigila a todos. */
+    public static final Set<String> hunters = new LinkedHashSet<>();
 
     /** Paleta de Mercury (RGB) y sus nombres. */
     public static final int[] PALETTE = {0xff3030, 0xffa500, 0xffff00, 0x40ff40, 0x40e0ff, 0x4060ff, 0xb040ff, 0xff60c0, 0xffffff, 0x8b5a2b};
@@ -45,6 +47,9 @@ public final class Config {
             friends.clear();
             for (String s : p.getProperty("friends", "").split(","))
                 if (!s.isBlank()) friends.add(s.trim().toLowerCase(Locale.ROOT));
+            hunters.clear();
+            for (String s : p.getProperty("hunters", "").split(","))
+                if (!s.isBlank()) hunters.add(s.trim().toLowerCase(Locale.ROOT));
             dev.mercury.client.module.ModuleManager.load(p);
         } catch (Exception ignored) {}
     }
@@ -57,6 +62,7 @@ public final class Config {
             p.setProperty("hud", "" + hud);
             p.setProperty("anim", "" + anim);
             p.setProperty("friends", String.join(",", friends));
+            p.setProperty("hunters", String.join(",", hunters));
             dev.mercury.client.module.ModuleManager.save(p);
             try (Writer w = Files.newBufferedWriter(file())) { p.store(w, "Mercury Client"); }
             com.visionplus.client.VPConfig.save();

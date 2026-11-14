@@ -12,6 +12,7 @@ import dev.mercury.client.fx.OreEsp;
 import dev.mercury.client.fx.PlayerEsp;
 import dev.mercury.client.fx.Portals;
 import dev.mercury.client.fx.Skybox;
+import dev.mercury.client.fx.SpectatorWatch;
 import dev.mercury.client.fx.Trails;
 import net.minecraft.client.Minecraft;
 import org.lwjgl.glfw.GLFW;
@@ -24,10 +25,10 @@ public final class ModuleManager {
     public static final List<Module> ALL = new ArrayList<>();
 
     // ---- CLIENTE (PvP) ----
-    public static Module AUTO_ANCHOR, AUTO_CRYSTAL, FAST_TOTEM, COMBAT, FREECAM, OPTIMIZER, MACE_COMBO;
+    public static Module AUTO_ANCHOR, AUTO_CRYSTAL, FAST_TOTEM, COMBAT, FREECAM, OPTIMIZER, MACE_COMBO, SAFE_ANCHOR, SPRINT, FAST_PLACE, AIM_ASSIST, AUTO_TOTEM, AUTO_ARMOR, AUTO_GAPPLE, PEARL;
     // ---- VISUALS ----
     public static Module CRYSTAL_HITBOX, FREELOOK, CHEST_ESP, CHUNK_FINDER, PLAYER_ALERT, INVIS_BOXES;
-    public static Module XRAY, DEBRIS, BLOCK_AURA, TRAILS, PLAYER_ESP, FOOTSTEPS, AURA, SKYBOX;
+    public static Module SPEC_WATCH, FULLBRIGHT, TARGET_HUD, XRAY, DEBRIS, BLOCK_AURA, TRAILS, PLAYER_ESP, FOOTSTEPS, AURA, SKYBOX;
 
     private static boolean espBoxesPref = true, espTracersPref = false;
 
@@ -60,6 +61,59 @@ public final class ModuleManager {
                 "Respawn anchor + glowstone con cambio de slot", -1).with(
                 delay("Delay min", () -> Pvp.anchorMin, v -> Pvp.anchorMin = v),
                 delay("Delay max", () -> Pvp.anchorMax, v -> Pvp.anchorMax = v)));
+        SAFE_ANCHOR = add(new Module(Module.Cat.PVP, "safeanchor", "Safe Anchor",
+                "Anchor: carga + escudo + totem + detona", -1).with(
+                Setting.integer("Delay min", () -> SafeAnchor.min, v -> SafeAnchor.min = v, 0, 10, 1, "t", true),
+                Setting.integer("Delay max", () -> SafeAnchor.max, v -> SafeAnchor.max = v, 0, 10, 1, "t", true),
+                Setting.integer("Rango enemigo", () -> SafeAnchor.range, v -> SafeAnchor.range = v, 3, 16, 1, "", true),
+                Setting.bool("Escudo", () -> SafeAnchor.shield, v -> SafeAnchor.shield = v, true),
+                Setting.choice("Bloque escudo", SafeAnchor.SHIELDS, () -> SafeAnchor.shieldMode, v -> SafeAnchor.shieldMode = v, true),
+                Setting.bool("Totem", () -> SafeAnchor.totem, v -> SafeAnchor.totem = v, true),
+                Setting.bool("Detonar", () -> SafeAnchor.detonate, v -> SafeAnchor.detonate = v, true)));
+
+        AIM_ASSIST = add(new Module(Module.Cat.PVP, "aimassist", "Aim Assist",
+                "Apunta suave al jugador mas cercano a tu mira", -1).with(
+                Setting.integer("Rango", () -> PvpTools.aimRange, v -> PvpTools.aimRange = v, 2, 8, 1, "", true),
+                Setting.integer("FOV", () -> PvpTools.aimFov, v -> PvpTools.aimFov = v, 20, 180, 10, "", true),
+                Setting.integer("Velocidad", () -> PvpTools.aimSpeed, v -> PvpTools.aimSpeed = v, 1, 10, 1, "", true),
+                Setting.choice("Objetivo", PvpTools.AIM_TARGETS, () -> PvpTools.aimTarget, v -> PvpTools.aimTarget = v, true),
+                Setting.bool("Vertical", () -> PvpTools.aimVertical, v -> PvpTools.aimVertical = v, true),
+                Setting.bool("Solo con click", () -> PvpTools.aimClick, v -> PvpTools.aimClick = v, true),
+                Setting.bool("Ignorar amigos", () -> PvpTools.aimFriends, v -> PvpTools.aimFriends = v, true)));
+        AUTO_TOTEM = add(new Module(Module.Cat.PVP, "autototem", "Auto Totem",
+                "Mantiene un totem en la mano secundaria", -1).with(
+                Setting.integer("Delay min", () -> PvpTools.totemDelayMin, v -> PvpTools.totemDelayMin = v, 0, 10, 1, "t", true),
+                Setting.integer("Delay max", () -> PvpTools.totemDelayMax, v -> PvpTools.totemDelayMax = v, 0, 10, 1, "t", true),
+                Setting.integer("Vida <= (0=siempre)", () -> PvpTools.totemHealth, v -> PvpTools.totemHealth = v, 0, 20, 2, "", true)));
+        AUTO_ARMOR = add(new Module(Module.Cat.PVP, "autoarmor", "Auto Armor",
+                "Se pone la mejor armadura del inventario", -1).with(
+                Setting.integer("Velocidad", () -> PvpTools.armorDelay, v -> PvpTools.armorDelay = v, 1, 10, 1, "", true)));
+        AUTO_GAPPLE = add(new Module(Module.Cat.PVP, "autogapple", "Auto Gapple",
+                "Come manzana dorada con poca vida", -1).with(
+                Setting.integer("Vida <=", () -> PvpTools.gapHealth, v -> PvpTools.gapHealth = v, 2, 19, 1, "", true),
+                Setting.bool("Preferir encantada", () -> PvpTools.gapEnchanted, v -> PvpTools.gapEnchanted = v, true),
+                Setting.bool("Volver al slot", () -> PvpTools.gapRestore, v -> PvpTools.gapRestore = v, true)));
+        PEARL = add(new Module(Module.Cat.PVP, "pearl", "Lanzar perla",
+                "Asignale una tecla: lanza la perla y vuelve", -1).with(
+                Setting.bool("Volver al slot", () -> PvpTools.pearlRestore, v -> PvpTools.pearlRestore = v, true)));
+        SPRINT = add(new Module(Module.Cat.PVP, "sprint", "Sprint",
+                "Corres siempre al avanzar", -1));
+        FAST_PLACE = add(new Module(Module.Cat.PVP, "fastplace", "Fast Place",
+                "Sin espera al colocar bloques/cristales", -1));
+        FULLBRIGHT = add(new Module(Module.Cat.VISUALS, "fullbright", "Fullbright",
+                "Ves en la oscuridad (vision nocturna local)", -1));
+        TARGET_HUD = add(new Module(Module.Cat.VISUALS, "targethud", "Target HUD",
+                "Nombre, vida y distancia del jugador al que miras", -1));
+
+        SPEC_WATCH = add(new Module(Module.Cat.CLIENTE, "specwatch", "Detector cazadores",
+                "Avisa si un cazador te espectea o va invisible", -1).with(
+                Setting.choice("Vigilar", SpectatorWatch.MODES, () -> SpectatorWatch.mode, v -> SpectatorWatch.mode = v, true),
+                Setting.integer("Rango", () -> SpectatorWatch.range, v -> SpectatorWatch.range = v, 8, 96, 8, "", true),
+                Setting.integer("Distancia pegado", () -> SpectatorWatch.close, v -> SpectatorWatch.close = v, 1, 6, 1, "", true),
+                Setting.bool("Aviso en pantalla", () -> SpectatorWatch.alert, v -> SpectatorWatch.alert = v, true),
+                Setting.bool("Sonido", () -> SpectatorWatch.sound, v -> SpectatorWatch.sound = v, true),
+                Setting.bool("Panel", () -> SpectatorWatch.panel, v -> SpectatorWatch.panel = v, true),
+                Setting.bool("ESP + tracer", () -> SpectatorWatch.esp, v -> SpectatorWatch.esp = v, true)));
         AUTO_CRYSTAL = add(new Module(Module.Cat.CLIENTE, "autocrystal", "Auto Crystal",
                 "Obsidiana -> cambia al cristal", -1).with(
                 delay("Delay min", () -> Pvp.crystalMin, v -> Pvp.crystalMin = v),
@@ -78,7 +132,7 @@ public final class ModuleManager {
                 "Baja distancia, sombras y particulas para mas FPS", -1, Optimizer::isOn, v -> Optimizer.toggle(Minecraft.getInstance())));
 
 
-        MACE_COMBO = add(new Module(Module.Cat.CLIENTE, "macecombo", "Mace Combo",
+        MACE_COMBO = add(new Module(Module.Cat.PVP, "macecombo", "Mace Combo",
                 "Elytra -> pechera -> mazo -> golpe automatico", -1).with(
                 Setting.integer("Rango cambio", () -> MaceCombo.range, v -> MaceCombo.range = v, 4, 16, 1, "", true),
                 Setting.bool("Elytra al volar", () -> MaceCombo.reEquip, v -> MaceCombo.reEquip = v, true),
@@ -148,7 +202,8 @@ public final class ModuleManager {
                 Setting.bool("Vida", () -> PlayerEsp.health, v -> PlayerEsp.health = v, true),
                 Setting.bool("Color por vida", () -> PlayerEsp.healthColor, v -> PlayerEsp.healthColor = v, true),
                 Setting.bool("Amigos verdes", () -> PlayerEsp.friendsGreen, v -> PlayerEsp.friendsGreen = v, true),
-                Setting.bool("Invisibles", () -> PlayerEsp.invisible, v -> PlayerEsp.invisible = v, true)).with(PlayerEsp.COLOR.settings()));
+                Setting.bool("Invisibles", () -> PlayerEsp.invisible, v -> PlayerEsp.invisible = v, true),
+                Setting.bool("Brillo", () -> PlayerEsp.glowFill, v -> PlayerEsp.glowFill = v, true)).with(PlayerEsp.COLOR.settings()));
         FOOTSTEPS = add(new Module(Module.Cat.VISUALS, "footsteps", "Portales (pasos)",
                 "Cada paso abre un portal de chispas", -1).with(
                 Setting.integer("Duracion (s)", () -> Portals.life, v -> Portals.life = v, 1, 6, 1, "", true),
@@ -226,6 +281,8 @@ public final class ModuleManager {
         Pvp.tick();
         AutoHit.tick();
         MaceCombo.tick();
+        SafeAnchor.tick();
+        PvpTools.tick();
         Fx.tick(mc);
         boolean free = mc.player != null && mc.gui.screen() == null;
         Freelook.tick(mc, free && FREELOOK.key > 0

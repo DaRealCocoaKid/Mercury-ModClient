@@ -59,6 +59,7 @@ public final class BlockAura {
             a *= a;
             if (a <= 0.02f) continue;
             int rgb = COLOR.rgb(t * 0.15f + (e.x + e.z) * 0.04f);
+            Cam.halo(g, e.x + 0.5, e.y + 0.5, e.z + 0.5, 2.6, rgb, a * 0.5f);
             double pulse = looking ? 0.012 * Math.sin(t * 8) : 0;
             Cam.box(g, e.x - pulse, e.y - pulse, e.z - pulse, e.x + 1 + pulse, e.y + 1 + pulse, e.z + 1 + pulse, rgb, a, 2, false);
             for (int k = 1; k <= glow; k++) {

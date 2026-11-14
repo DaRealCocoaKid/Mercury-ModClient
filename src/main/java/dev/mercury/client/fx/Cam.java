@@ -129,6 +129,7 @@ public final class Cam {
         }
         double ax = x1 + t0 * dx, ay = y1 + t0 * dy, bx = x1 + t1 * dx, by = y1 + t1 * dy;
         double len = Math.hypot(bx - ax, by - ay);
+        if (Spr.enabled) { Spr.beam(g, ax, ay, bx, by, t * 1.4, rgb, alpha); return; }
         int col = Col.argb(rgb, alpha);
         int h = t / 2;
         if (len < 1) { g.fill((int) ax - h, (int) ay - h, (int) ax - h + t, (int) ay - h + t, col); return; }
@@ -180,6 +181,12 @@ public final class Cam {
         if (alpha <= 0.01f || !project(wx, wy, wz) || sz > 220) return;
         int x = (int) sx, y = (int) sy;
         if (x < -30 || y < -30 || x > W + 30 || y > H + 30) return;
+        if (Spr.enabled) {
+            double d = Math.max(4, Math.min(90, size * scale / sz * 3.2));
+            Spr.glow(g, sx, sy, d, rgb, alpha * 0.9f);
+            if (d > 13 && alpha > 0.3f) Spr.flare(g, sx, sy, d * 1.7, rgb, alpha * 0.5f);
+            return;
+        }
         int r = (int) Math.max(1, Math.min(12, Math.round(size * scale / sz)));
         if (r >= 3) {
             Gfx.disc(g, x, y, r * 2, Col.argb(rgb, alpha * 0.10f));
@@ -203,5 +210,14 @@ public final class Cam {
             double vx = xc, vy = -yc, len = Math.hypot(vx, vy);
             if (len > 1e-4) line2(g, W / 2.0, H / 2.0, W / 2.0 + vx / len * W, H / 2.0 + vy / len * W, rgb, alpha * 0.7f, t);
         }
+    }
+
+    /** Halo grande y suave centrado en un punto del mundo (diametro en bloques). */
+    public static void halo(GuiGraphicsExtractor g, double wx, double wy, double wz, double diameter, int rgb, float alpha) {
+        if (!project(wx, wy, wz) || sz > 220) return;
+        double d = Math.min(Math.max(diameter * scale / sz, 3), 700);
+        if (sx < -d || sy < -d || sx > W + d || sy > H + d) return;
+        if (Spr.enabled) Spr.glow(g, sx, sy, d, rgb, alpha);
+        else { int h = (int) (d * 0.25); g.fill((int) sx - h, (int) sy - h, (int) sx + h, (int) sy + h, Col.argb(rgb, alpha * 0.25f)); }
     }
 }

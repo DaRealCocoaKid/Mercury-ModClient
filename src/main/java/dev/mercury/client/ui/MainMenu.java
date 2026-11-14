@@ -41,6 +41,7 @@ public class MainMenu extends Screen {
     private int scroll = 0;
     private String input = "";
     private boolean inputFocus = false;
+    private boolean huntersMode = false;
 
     public MainMenu() { super(Component.literal("Mercury Client")); }
 
@@ -172,8 +173,17 @@ public class MainMenu extends Screen {
     }
 
     private void friends(GuiGraphicsExtractor g, int mx, int my, int x, int y, int w, int h, float a) {
-        g.text(font, Gfx.bold("Amigos"), x, y, Gfx.a(Gfx.TEXT, a), true);
-        g.text(font, "Los amigos no reciben golpes de Combat Zylow.", x, y + 14, Gfx.a(Gfx.DIM, a), false);
+        g.text(font, Gfx.bold(huntersMode ? "Cazadores" : "Amigos"), x, y, Gfx.a(Gfx.TEXT, a), true);
+        g.text(font, huntersMode ? "Nombres a vigilar con el Detector de cazadores (espectador / invisible)." : "Los amigos no reciben golpes de Combat Zylow.", x, y + 14, Gfx.a(Gfx.DIM, a), false);
+        for (int k = 0; k < 2; k++) {
+            String lb = k == 0 ? "Amigos" : "Cazadores";
+            int tx = x + w - 130 + k * 66, tw = 62;
+            boolean act = (k == 1) == huntersMode;
+            Gfx.rrect(g, tx, y - 2, tx + tw, y + 12, 4, Gfx.a(act ? 0x50FFFFFF : 0x20FFFFFF, a));
+            g.text(font, lb, tx + (tw - font.width(lb)) / 2, y + 1, Gfx.a(act ? Gfx.TEXT : Gfx.DIM, a), true);
+            final boolean toHunters = k == 1;
+            hits.add(new Hit(tx, y - 2, tx + tw, y + 12, () -> { huntersMode = toHunters; scroll = 0; }, () -> {}));
+        }
         // caja de texto
         int iy = y + 30, iw = Math.min(w - 70, 220);
         boolean f = inputFocus;
@@ -193,9 +203,9 @@ public class MainMenu extends Screen {
         if (mc.level != null) for (var pl : mc.level.players()) online.add(pl.getName().getString().toLowerCase(Locale.ROOT));
 
         int ly = iy + 26, rows = Math.max(1, (y + h - ly) / 18);
-        List<String> list = new ArrayList<>(Config.friends);
+        List<String> list = new ArrayList<>(huntersMode ? Config.hunters : Config.friends);
         scroll = Math.max(0, Math.min(scroll, Math.max(0, list.size() - rows)));
-        if (list.isEmpty()) g.text(font, "Aun no tienes amigos agregados.", x, ly + 4, Gfx.a(0xFF6F7583, a), false);
+        if (list.isEmpty()) g.text(font, huntersMode ? "Sin cazadores: el detector vigila a todos." : "Aun no tienes amigos agregados.", x, ly + 4, Gfx.a(0xFF6F7583, a), false);
         for (int i = scroll; i < Math.min(list.size(), scroll + rows); i++) {
             String n = list.get(i);
             int ry = ly + (i - scroll) * 18;
@@ -208,13 +218,13 @@ public class MainMenu extends Screen {
             boolean xh = Gfx.in(mx, my, x + w - 20, ry, x + w - 4, ry + 16);
             g.text(font, "x", x + w - 14, ry + 4, Gfx.a(xh ? 0xFFFF7A7A : Gfx.DIM, a), true);
             final String nn = n;
-            hits.add(new Hit(x + w - 20, ry, x + w - 4, ry + 16, () -> { Config.friends.remove(nn); Config.save(); }, () -> {}));
+            hits.add(new Hit(x + w - 20, ry, x + w - 4, ry + 16, () -> { (huntersMode ? Config.hunters : Config.friends).remove(nn); Config.save(); }, () -> {}));
         }
     }
 
     private void addFriend() {
         String n = input.trim().toLowerCase(Locale.ROOT);
-        if (!n.isEmpty()) { Config.friends.add(n); Config.save(); }
+        if (!n.isEmpty()) { (huntersMode ? Config.hunters : Config.friends).add(n); Config.save(); }
         input = "";
     }
 

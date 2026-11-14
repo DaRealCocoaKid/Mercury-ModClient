@@ -57,6 +57,7 @@ public final class Fx {
             Trails.tick(mc);
             Portals.tick(mc);
             AuraOrbs.tick(mc);
+            SpectatorWatch.tick(mc);
             OreEsp.XRAY.tick(mc);
             OreEsp.DEBRIS.tick(mc);
             Iterator<P> it = PARTS.iterator();
@@ -73,7 +74,8 @@ public final class Fx {
     private static void draw(GuiGraphicsExtractor g, float pt) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.level == null) return;
-        if (!(Skybox.on() || BlockAura.on() || Trails.on() || Portals.on() || AuraOrbs.on() || PlayerEsp.on() || OreEsp.XRAY.on() || OreEsp.DEBRIS.on())) return;
+        if (TargetHud.on()) { try { TargetHud.draw(mc, g); } catch (Throwable ignored) {} }
+        if (!(Skybox.on() || BlockAura.on() || Trails.on() || Portals.on() || AuraOrbs.on() || PlayerEsp.on() || SpectatorWatch.on() || OreEsp.XRAY.on() || OreEsp.DEBRIS.on())) return;
         try {
             Cam.update(mc, g, pt);
             if (!Cam.ok) return;
@@ -85,6 +87,7 @@ public final class Fx {
             if (OreEsp.XRAY.on()) OreEsp.XRAY.draw(mc, g, pt);
             if (OreEsp.DEBRIS.on()) OreEsp.DEBRIS.draw(mc, g, pt);
             if (PlayerEsp.on()) PlayerEsp.draw(mc, g, pt);
+            if (SpectatorWatch.on()) SpectatorWatch.draw(mc, g, pt, true);
             for (P p : PARTS) {
                 float a = 1f - (p.age + pt) / p.life;
                 Cam.spark(g, p.x + p.vx * pt, p.y + p.vy * pt, p.z + p.vz * pt, p.size * (0.5 + 0.5 * a), p.rgb, a);

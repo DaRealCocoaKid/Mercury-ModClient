@@ -14,7 +14,7 @@ public final class PlayerEsp {
     public static final ColorSet COLOR = new ColorSet(0);
     public static final String[] MODES = {"Completo", "Solo hitbox", "Solo tracer"};
     public static int mode = 0, range = 128, width = 1;
-    public static boolean names = true, health = true, friendsGreen = true, invisible = true, healthColor = false;
+    public static boolean names = true, health = true, friendsGreen = true, invisible = true, healthColor = false, glowFill = true;
 
     private static final double[] TMP = new double[3];
 
@@ -49,7 +49,10 @@ public final class PlayerEsp {
 
             boolean glow = drawn < 8;
             drawn++;
-            if (boxes) Cam.box(g, x1, y1, z1, x2, y2, z2, rgb, 1f, width, glow);
+            if (boxes) {
+                Cam.box(g, x1, y1, z1, x2, y2, z2, rgb, 1f, width, glow);
+                if (glowFill && dist < 60) Cam.halo(g, (x1 + x2) / 2, (y1 + y2) / 2, (z1 + z2) / 2, Math.max(1.8, (y2 - y1) * 1.5), rgb, 0.22f);
+            }
 
             if (tracers) {
                 double cx = (x1 + x2) / 2, cz = (z1 + z2) / 2, cy = (y1 + y2) / 2;

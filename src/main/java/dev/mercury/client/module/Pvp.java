@@ -47,6 +47,7 @@ public final class Pvp {
         if (!l.isClientSide() || p != mc.player || h != InteractionHand.MAIN_HAND) return;
         Item held = p.getMainHandItem().getItem();
 
+        if (held == Items.RESPAWN_ANCHOR && SafeAnchor.on()) { SafeAnchor.start(p, l, hit); return; }
         if (ModuleManager.AUTO_ANCHOR.isOn()) {
             if (held == Items.RESPAWN_ANCHOR) {
                 int s = findHotbar(p, Items.GLOWSTONE);
