@@ -48,3 +48,9 @@ Todos los efectos se dibujan en el HUD proyectando el mundo a pantalla (como el 
 - **Auto Water Drop** (PvP): si caes (mín. 5 bloques por defecto) y tienes una cubeta de agua en la hotbar, la cambia, mira abajo, tira el agua antes de chocar y (opcional) la recoge y te devuelve el slot y la mirada.
 - **Fix Fast Totem en servers**: ambos modos abren el inventario; se cierra el inventario justo después del click (máx. 1 s), te deja moverte con el inventario abierto (opción "Moverte con inventario") y al cerrarlo vuelve a leer las teclas que mantienes presionadas.
 - **Fix Combat Zylow en servers**: solo golpea dentro de un alcance seguro (2.2 a 3.0, por defecto 2.4) y con margen extra si el objetivo se aleja (ping alto). Antes golpeaba en el borde del alcance vanilla, el servidor rechazaba el golpe y te corregía la posición.
+
+## Novedades (v31)
+- **Skybox real** (Visuals): cielo dentro del juego, dibujado en la fase del cielo (detrás de bloques, jugadores y HUD). Estilos: topográfico fino / grueso / con relleno / nebulosa. Colores de fondo, líneas y aurora modificables (paleta, animados o RGB), detalle, grosor, animación, velocidad, rotación, calidad, auroras 3D, estrellas y sol/luna. La textura se genera en un hilo aparte: no cuesta FPS. En el Nether no aplica (el juego no dibuja cielo ahí).
+- **Aura de item** (Visuals): contorno que brilla alrededor del item en tu mano. Tipos: glow suave, línea, fuego, pulso; color, grosor e intensidad modificables.
+- **Footsteps → modo Latidos**: nueva opción "Modo" (Portales / Latidos). En Latidos cada paso lanza un "lub-dub" y los bloques alrededor se iluminan suave y translúcido con colores cambiantes (alcance y suavidad ajustables).
+- Se mantiene todo lo de v29/v30 (Crystal Hold/Auto, Auto Walk, Auto Water Drop, fixes de Fast Totem y Combat Zylow).

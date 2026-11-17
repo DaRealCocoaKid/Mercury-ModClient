@@ -52,7 +52,6 @@ public final class Fx {
         if (mc.player == null || mc.level == null) { PARTS.clear(); Track.clear(); return; }
         try {
             Track.tick(mc);
-            Skybox.tick(mc);
             BlockAura.tick(mc);
             Trails.tick(mc);
             Portals.tick(mc);
@@ -75,11 +74,10 @@ public final class Fx {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.level == null) return;
         if (TargetHud.on()) { try { TargetHud.draw(mc, g); } catch (Throwable ignored) {} }
-        if (!(Skybox.on() || BlockAura.on() || Trails.on() || Portals.on() || AuraOrbs.on() || PlayerEsp.on() || SpectatorWatch.on() || OreEsp.XRAY.on() || OreEsp.DEBRIS.on())) return;
+        if (!(BlockAura.on() || Trails.on() || Portals.on() || AuraOrbs.on() || PlayerEsp.on() || SpectatorWatch.on() || OreEsp.XRAY.on() || OreEsp.DEBRIS.on())) return;
         try {
             Cam.update(mc, g, pt);
             if (!Cam.ok) return;
-            if (Skybox.on()) Skybox.draw(mc, g, pt);
             if (BlockAura.on()) BlockAura.draw(mc, g, pt);
             if (Portals.on()) Portals.draw(mc, g, pt);
             if (Trails.on()) Trails.draw(mc, g, pt);

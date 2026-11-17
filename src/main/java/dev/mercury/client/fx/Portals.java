@@ -12,9 +12,11 @@ import java.util.List;
 public final class Portals {
     public static final ColorSet COLOR = new ColorSet(1); // naranja
     public static int life = 2, radius = 7, orient = 0;
+    /** 0 = portales de chispas, 1 = latidos: los bloques alrededor palpitan con luz suave. */
+    public static int mode = 0, pulseRadius = 4, pulseSoft = 5;
     public static boolean sparks = true;
 
-    private static final class Pt { double x, y, z, hx, hz; long born; }
+    private static final class Pt { double x, y, z, hx, hz; long born; float[] cx, cy, cz, cd; }
     private static final List<Pt> L = new ArrayList<>();
     private static double lastX, lastZ;
     private static boolean has, left;
@@ -40,6 +42,7 @@ public final class Portals {
             q.y = p.getY() + 0.02;
             q.hx = hx; q.hz = hz;
             q.born = Fx.now();
+            if (mode == 1) columns(mc, q);
             L.add(q);
             if (L.size() > 36) L.remove(0);
             lastX = p.getX(); lastZ = p.getZ();
@@ -48,7 +51,7 @@ public final class Portals {
         long lifeMs = life * 1000L;
         L.removeIf(q -> now - q.born > lifeMs);
 
-        if (sparks) {
+        if (sparks && mode == 0) {
             for (Pt q : L) {
                 float age = (now - q.born) / (float) lifeMs;
                 if (age > 0.6f || Fx.rnd() > 0.55f) continue;
@@ -67,11 +70,64 @@ public final class Portals {
         }
     }
 
+
+    /** Columnas de bloques alrededor del paso (altura de la superficie) para que el latido las ilumine sin consultar el mundo cada frame. */
+    private static void columns(Minecraft mc, Pt q) {
+        int R = Math.max(2, pulseRadius);
+        int cx0 = (int) Math.floor(q.x), cz0 = (int) Math.floor(q.z), y0 = (int) Math.floor(q.y) + 1;
+        int cap = (2 * R + 1) * (2 * R + 1);
+        float[] ax = new float[cap], ay = new float[cap], az = new float[cap], ad = new float[cap];
+        int n = 0;
+        for (int dx = -R; dx <= R; dx++)
+            for (int dz = -R; dz <= R; dz++) {
+                double dist = Math.sqrt(dx * dx + dz * dz);
+                if (dist > R) continue;
+                int bx = cx0 + dx, bz = cz0 + dz;
+                for (int y = y0; y >= y0 - 4; y--) {
+                    net.minecraft.core.BlockPos pos = new net.minecraft.core.BlockPos(bx, y, bz);
+                    var st = mc.level.getBlockState(pos);
+                    var shape = st.getCollisionShape(mc.level, pos);
+                    if (!shape.isEmpty()) {
+                        ax[n] = bx + 0.5f; ay[n] = (float) (y + shape.max(net.minecraft.core.Direction.Axis.Y)); az[n] = bz + 0.5f;
+                        ad[n] = (float) Math.sqrt((bx + 0.5 - q.x) * (bx + 0.5 - q.x) + (bz + 0.5 - q.z) * (bz + 0.5 - q.z));
+                        n++;
+                        break;
+                    }
+                }
+            }
+        q.cx = java.util.Arrays.copyOf(ax, n); q.cy = java.util.Arrays.copyOf(ay, n);
+        q.cz = java.util.Arrays.copyOf(az, n); q.cd = java.util.Arrays.copyOf(ad, n);
+    }
+
+    private static float ease(float t) { t = Math.max(0f, Math.min(1f, t)); return 1f - (1f - t) * (1f - t); }
+
+    /** Latidos: un "lub-dub" que sale de cada paso; el suelo alrededor se ilumina suave, translucido y de color cambiante. */
+    private static void pulses(GuiGraphicsExtractor g) {
+        long now = Fx.now();
+        float lifeMs = life * 1000f, R = Math.max(2, pulseRadius), w = 0.45f + pulseSoft * 0.14f, tt = Fx.time();
+        for (Pt q : L) {
+            if (q.cx == null) continue;
+            float age = (now - q.born) / lifeMs;
+            if (age >= 1f) continue;
+            float fade = (1f - age) * (1f - age);
+            float r1 = R * ease(age / 0.5f), r2 = R * ease((age - 0.12f) / 0.5f);
+            for (int i = 0; i < q.cx.length; i++) {
+                float d = q.cd[i];
+                float a = (float) Math.exp(-((d - r1) * (d - r1)) / (w * w)) + 0.6f * (float) Math.exp(-((d - r2) * (d - r2)) / (w * w)) * (age > 0.12f ? 1f : 0f);
+                a *= fade * 0.26f;
+                if (a < 0.012f) continue;
+                int rgb = COLOR.rgb(d / R * 0.35f + age * 0.3f + tt * 0.05f);
+                Cam.halo(g, q.cx[i], q.cy[i] + 0.03, q.cz[i], 1.7, rgb, Math.min(0.3f, a));
+            }
+        }
+    }
+
     private static double[] axisU(Pt q) { return orient == 0 ? new double[]{1, 0, 0} : new double[]{-q.hz, 0, q.hx}; }
     private static double[] axisV(Pt q) { return orient == 0 ? new double[]{0, 0, 1} : new double[]{0, 1, 0}; }
     private static double[] center(Pt q, double R) { return orient == 0 ? new double[]{q.x, q.y, q.z} : new double[]{q.x, q.y + 0.05 + R, q.z}; }
 
     public static void draw(Minecraft mc, GuiGraphicsExtractor g, float pt) {
+        if (mode == 1) { pulses(g); return; }
         long now = Fx.now();
         float lifeMs = life * 1000f;
         for (Pt q : L) {

@@ -11,7 +11,8 @@ import dev.mercury.client.fx.ColorSet;
 import dev.mercury.client.fx.OreEsp;
 import dev.mercury.client.fx.PlayerEsp;
 import dev.mercury.client.fx.Portals;
-import dev.mercury.client.fx.Skybox;
+import dev.mercury.client.fx.CustomSky;
+import dev.mercury.client.fx.ItemAura;
 import dev.mercury.client.fx.SpectatorWatch;
 import dev.mercury.client.fx.Trails;
 import net.minecraft.client.Minecraft;
@@ -25,10 +26,10 @@ public final class ModuleManager {
     public static final List<Module> ALL = new ArrayList<>();
 
     // ---- CLIENTE (PvP) ----
-    public static Module AUTO_ANCHOR, AUTO_CRYSTAL, FAST_TOTEM, COMBAT, FREECAM, OPTIMIZER, MACE_COMBO, SAFE_ANCHOR, SPRINT, FAST_PLACE, AIM_ASSIST, AUTO_TOTEM, AUTO_ARMOR, AUTO_GAPPLE, PEARL;
+    public static Module AUTO_ANCHOR, AUTO_CRYSTAL, FAST_TOTEM, COMBAT, FREECAM, OPTIMIZER, MACE_COMBO, SAFE_ANCHOR, SPRINT, FAST_PLACE, AIM_ASSIST, AUTO_TOTEM, AUTO_ARMOR, AUTO_GAPPLE, PEARL, CRYSTAL_HOLD, CRYSTAL_AUTO, AUTOWALK, WATER_DROP;
     // ---- VISUALS ----
     public static Module CRYSTAL_HITBOX, FREELOOK, CHEST_ESP, CHUNK_FINDER, PLAYER_ALERT, INVIS_BOXES;
-    public static Module SPEC_WATCH, FULLBRIGHT, TARGET_HUD, XRAY, DEBRIS, BLOCK_AURA, TRAILS, PLAYER_ESP, FOOTSTEPS, AURA, SKYBOX;
+    public static Module SPEC_WATCH, FULLBRIGHT, TARGET_HUD, XRAY, DEBRIS, BLOCK_AURA, TRAILS, PLAYER_ESP, FOOTSTEPS, AURA, SKYBOX, ITEM_AURA;
 
     private static boolean espBoxesPref = true, espTracersPref = false;
 
@@ -100,6 +101,13 @@ public final class ModuleManager {
                 "Corres siempre al avanzar", -1));
         FAST_PLACE = add(new Module(Module.Cat.PVP, "fastplace", "Fast Place",
                 "Sin espera al colocar bloques/cristales", -1));
+        AUTOWALK = add(new Module(Module.Cat.PVP, "autowalk", "Auto Walk",
+                "Camina solo hacia adelante", -1));
+        WATER_DROP = add(new Module(Module.Cat.PVP, "waterdrop", "Auto Water Drop",
+                "Cayendo con cubeta de agua en la hotbar: water drop solo", -1).with(
+                Setting.integer("Caida minima", () -> MoveTools.minFall, v -> MoveTools.minFall = v, 3, 20, 1, "", true),
+                Setting.bool("Recoger agua", () -> MoveTools.pickUp, v -> MoveTools.pickUp = v, true),
+                Setting.bool("Volver al slot y mira", () -> MoveTools.restore, v -> MoveTools.restore = v, true)));
         FULLBRIGHT = add(new Module(Module.Cat.VISUALS, "fullbright", "Fullbright",
                 "Ves en la oscuridad (vision nocturna local)", -1));
         TARGET_HUD = add(new Module(Module.Cat.VISUALS, "targethud", "Target HUD",
@@ -118,13 +126,30 @@ public final class ModuleManager {
                 "Obsidiana -> cambia al cristal", -1).with(
                 delay("Delay min", () -> Pvp.crystalMin, v -> Pvp.crystalMin = v),
                 delay("Delay max", () -> Pvp.crystalMax, v -> Pvp.crystalMax = v)));
+        CRYSTAL_HOLD = add(new Module(Module.Cat.CLIENTE, "crystalhold", "Crystal Hold",
+                "Manten click derecho con cristal: coloca y rompe rapido", -1).with(
+                Setting.integer("Colocar min", () -> CrystalTools.holdPlaceMin, v -> CrystalTools.holdPlaceMin = v, 0, 6, 1, "t", true),
+                Setting.integer("Colocar max", () -> CrystalTools.holdPlaceMax, v -> CrystalTools.holdPlaceMax = v, 0, 6, 1, "t", true),
+                Setting.integer("Romper min", () -> CrystalTools.holdBreakMin, v -> CrystalTools.holdBreakMin = v, 0, 6, 1, "t", true),
+                Setting.integer("Romper max", () -> CrystalTools.holdBreakMax, v -> CrystalTools.holdBreakMax = v, 0, 6, 1, "t", true)));
+        CRYSTAL_AUTO = add(new Module(Module.Cat.CLIENTE, "crystalauto", "Crystal Auto",
+                "Mirando obsidiana coloca y rompe cristales solo", -1).with(
+                Setting.integer("Colocar min", () -> CrystalTools.autoPlaceMin, v -> CrystalTools.autoPlaceMin = v, 0, 6, 1, "t", true),
+                Setting.integer("Colocar max", () -> CrystalTools.autoPlaceMax, v -> CrystalTools.autoPlaceMax = v, 0, 6, 1, "t", true),
+                Setting.integer("Romper min", () -> CrystalTools.autoBreakMin, v -> CrystalTools.autoBreakMin = v, 0, 6, 1, "t", true),
+                Setting.integer("Romper max", () -> CrystalTools.autoBreakMax, v -> CrystalTools.autoBreakMax = v, 0, 6, 1, "t", true),
+                Setting.bool("Cambiar al cristal", () -> CrystalTools.autoSwitch, v -> CrystalTools.autoSwitch = v, true),
+                Setting.integer("Solo con enemigo a (0=siempre)", () -> CrystalTools.autoEnemyRange, v -> CrystalTools.autoEnemyRange = v, 0, 32, 2, "", true),
+                Setting.integer("No romper si vida <= (0=off)", () -> CrystalTools.autoMinHealth, v -> CrystalTools.autoMinHealth = v, 0, 20, 2, "", true)));
         FAST_TOTEM = add(new Module(Module.Cat.CLIENTE, "fasttotem", "Fast Totem",
                 "Repone el totem al instante al popear", -1).with(
                 Setting.choice("Modo", new String[]{"1 Click", "Full Auto"}, () -> Pvp.totemMode, v -> Pvp.totemMode = v, true),
                 delay("Delay min", () -> Pvp.totemMin, v -> Pvp.totemMin = v),
-                delay("Delay max", () -> Pvp.totemMax, v -> Pvp.totemMax = v)));
+                delay("Delay max", () -> Pvp.totemMax, v -> Pvp.totemMax = v),
+                Setting.bool("Moverte con inventario", () -> Pvp.totemWalk, v -> Pvp.totemWalk = v, true)));
         COMBAT = add(new Module(Module.Cat.CLIENTE, "combat", "Combat Zylow",
-                "Golpea solo con el crosshair sobre un jugador", GLFW.GLFW_KEY_G));
+                "Golpea solo con el crosshair sobre un jugador", GLFW.GLFW_KEY_G).with(
+                Setting.choice("Alcance max", AutoHit.REACH, () -> AutoHit.reachIdx, v -> AutoHit.reachIdx = v, true)));
         FREECAM = add(new Module(Module.Cat.CLIENTE, "freecam", "Freecam",
                 "Camara libre", GLFW.GLFW_KEY_V, () -> Freecam.active, v -> Freecam.toggle(Minecraft.getInstance())).with(
                 Setting.decimal("Velocidad", () -> c().freecamSpeed, v -> c().freecamSpeed = (float) v, 0.5, 10, 0.5, v -> String.format("%.1f", v))));
@@ -209,7 +234,10 @@ public final class ModuleManager {
                 Setting.integer("Duracion (s)", () -> Portals.life, v -> Portals.life = v, 1, 6, 1, "", true),
                 Setting.integer("Tamano", () -> Portals.radius, v -> Portals.radius = v, 3, 15, 1, "", true),
                 Setting.choice("Orientacion", new String[]{"Suelo", "Vertical"}, () -> Portals.orient, v -> Portals.orient = v, true),
-                Setting.bool("Chispas", () -> Portals.sparks, v -> Portals.sparks = v, true)).with(Portals.COLOR.settings()));
+                Setting.bool("Chispas", () -> Portals.sparks, v -> Portals.sparks = v, true)).with(Portals.COLOR.settings()).with(
+                Setting.choice("Modo", new String[]{"Portales", "Latidos"}, () -> Portals.mode, v -> Portals.mode = v, true),
+                Setting.integer("Latido: alcance", () -> Portals.pulseRadius, v -> Portals.pulseRadius = v, 2, 8, 1, "", true),
+                Setting.integer("Latido: suavidad", () -> Portals.pulseSoft, v -> Portals.pulseSoft = v, 1, 10, 1, "", true)));
         AURA = add(new Module(Module.Cat.VISUALS, "aura", "Aura",
                 "Bolitas de luz y destellos a tu alrededor", -1).with(
                 Setting.integer("Bolitas", () -> AuraOrbs.count, v -> AuraOrbs.count = v, 2, 24, 1, "", true),
@@ -218,21 +246,25 @@ public final class ModuleManager {
                 Setting.integer("Tamano", () -> AuraOrbs.size, v -> AuraOrbs.size = v, 2, 12, 1, "", true),
                 Setting.bool("Estela", () -> AuraOrbs.trail, v -> AuraOrbs.trail = v, true),
                 Setting.bool("Rayos", () -> AuraOrbs.lightning, v -> AuraOrbs.lightning = v, true)).with(AuraOrbs.COLOR.settings()));
-        SKYBOX = add(new Module(Module.Cat.VISUALS, "skybox", "Skybox",
-                "Cielo nebulosa/galaxia con auroras y colores", -1).with(
-                Setting.choice("Estilo", Skybox.STYLES, () -> Skybox.style, v -> Skybox.style = v, true),
-                Setting.choice("Color cielo", ColorSet.NAMES, () -> Skybox.SKY.mode, v -> Skybox.SKY.mode = v, true),
-                Setting.integer("Cielo R", () -> Skybox.SKY.r, v -> Skybox.SKY.r = v, 0, 255, 15, "", true),
-                Setting.integer("Cielo G", () -> Skybox.SKY.g, v -> Skybox.SKY.g = v, 0, 255, 15, "", true),
-                Setting.integer("Cielo B", () -> Skybox.SKY.b, v -> Skybox.SKY.b = v, 0, 255, 15, "", true),
-                Setting.bool("Auroras", () -> Skybox.auroras, v -> Skybox.auroras = v, true),
-                Setting.choice("Color aurora", ColorSet.NAMES_NO_CUSTOM, () -> Skybox.AUR.mode, v -> Skybox.AUR.mode = v, true),
-                Setting.bool("Estrellas", () -> Skybox.stars, v -> Skybox.stars = v, true),
-                Setting.integer("Cantidad", () -> Skybox.density, v -> Skybox.density = v, 100, 1500, 100, "", true),
-                Setting.bool("Fugaces", () -> Skybox.meteors, v -> Skybox.meteors = v, true),
-                Setting.integer("Velocidad", () -> Skybox.speed, v -> Skybox.speed = v, 1, 12, 1, "", true),
-                Setting.integer("Opacidad", () -> Skybox.opacity, v -> Skybox.opacity = v, 20, 100, 10, "%", true),
-                Setting.choice("Calidad", Skybox.QUALITY, () -> Skybox.quality, v -> Skybox.quality = v, true)));
+        SKYBOX = add(new Module(Module.Cat.VISUALS, "skyboxreal", "Skybox",
+                "Cielo real dentro del juego: lineas topograficas o nebulosa animada", -1).with(
+                Setting.choice("Estilo", CustomSky.STYLES, () -> CustomSky.style, v -> CustomSky.style = v, true),
+                Setting.integer("Detalle", () -> CustomSky.detail, v -> CustomSky.detail = v, 1, 10, 1, "", true),
+                Setting.integer("Grosor linea", () -> CustomSky.thick, v -> CustomSky.thick = v, 1, 4, 1, "", true),
+                Setting.bool("Animar", () -> CustomSky.animate, v -> CustomSky.animate = v, true),
+                Setting.integer("Velocidad", () -> CustomSky.speed, v -> CustomSky.speed = v, 1, 10, 1, "", true),
+                Setting.integer("Rotacion", () -> CustomSky.rotate, v -> CustomSky.rotate = v, 0, 10, 1, "", true),
+                Setting.choice("Calidad", CustomSky.QUALITY, () -> CustomSky.quality, v -> CustomSky.quality = v, true),
+                Setting.bool("Auroras 3D", () -> CustomSky.aurora, v -> CustomSky.aurora = v, true),
+                Setting.bool("Estrellas", () -> CustomSky.stars, v -> CustomSky.stars = v, true),
+                Setting.bool("Sol y luna", () -> CustomSky.celestials, v -> CustomSky.celestials = v, true)
+        ).with(colorSet("Fondo", CustomSky.BG)).with(colorSet("Lineas", CustomSky.LINE)).with(colorSet("Aurora", CustomSky.AUR)));
+        ITEM_AURA = add(new Module(Module.Cat.VISUALS, "itemaura", "Aura de item",
+                "Contorno que brilla alrededor del item que tienes en la mano", -1).with(
+                Setting.choice("Tipo", ItemAura.TYPES, () -> ItemAura.type, v -> ItemAura.type = v, true),
+                Setting.integer("Grosor", () -> ItemAura.thick, v -> ItemAura.thick = v, 1, 8, 1, "", true),
+                Setting.integer("Intensidad", () -> ItemAura.intensity, v -> ItemAura.intensity = v, 2, 12, 1, "", true)
+        ).with(colorSet("Color", ItemAura.COLOR)));
 
         OreEsp X = OreEsp.XRAY, D = OreEsp.DEBRIS;
         String[] xcolors = new String[ColorSet.NAMES.length];
@@ -283,6 +315,8 @@ public final class ModuleManager {
         MaceCombo.tick();
         SafeAnchor.tick();
         PvpTools.tick();
+        CrystalTools.tick();
+        MoveTools.tick();
         Fx.tick(mc);
         boolean free = mc.player != null && mc.gui.screen() == null;
         Freelook.tick(mc, free && FREELOOK.key > 0
@@ -298,4 +332,14 @@ public final class ModuleManager {
 
     public static void save(Properties p) { for (Module m : ALL) m.save(p); }
     public static void load(Properties p) { for (Module m : ALL) m.load(p); }
+
+    /** Ajustes de color con nombre propio: paleta/animados/personalizado + RGB. */
+    private static Setting[] colorSet(String name, dev.mercury.client.fx.ColorSet c) {
+        return new Setting[]{
+                Setting.choice(name, dev.mercury.client.fx.ColorSet.NAMES, () -> c.mode, v -> c.mode = v, true),
+                Setting.integer(name + " R", () -> c.r, v -> c.r = v, 0, 255, 15, "", true),
+                Setting.integer(name + " G", () -> c.g, v -> c.g = v, 0, 255, 15, "", true),
+                Setting.integer(name + " B", () -> c.b, v -> c.b = v, 0, 255, 15, "", true)
+        };
+    }
 }
